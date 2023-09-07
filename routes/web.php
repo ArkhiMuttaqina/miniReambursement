@@ -39,13 +39,6 @@ Auth::routes();
         Route::post('/employee/update', [App\Http\Controllers\MasterUserController::class, 'update'])->name('employee_update');
         Route::post('/employee/delete', [App\Http\Controllers\MasterUserController::class, 'delete'])->name('employee_delete');
 
-        //ROLE
-        Route::get('/role', [App\Http\Controllers\RoleController::class, 'index'])->name('role');
-        Route::get('/role/api', [App\Http\Controllers\RoleController::class, 'apiRole'])->name('role_api');
-        Route::post('/role/store', [App\Http\Controllers\RoleController::class, 'storeRole'])->name('role_store');
-        Route::post('/role/update', [App\Http\Controllers\RoleController::class, 'update'])->name('role_update');
-        Route::post('/role/delete', [App\Http\Controllers\RoleController::class, 'delete'])->name('role_delete');
-
 
         // REIMBURSMENT
         Route::get('/reimbursement', [App\Http\Controllers\ReimbursementController::class, 'index'])->name('reimbursement');
@@ -61,6 +54,8 @@ Auth::routes();
         Route::post('/reimbursement/approval', [App\Http\Controllers\ReimbursementController::class, 'approval'])->name('reimbursement_approval');
         Route::post('/reimbursement/approved', [App\Http\Controllers\ReimbursementController::class, 'approved'])->name('reimbursement_approved');
         Route::post('/reimbursement/rejected', [App\Http\Controllers\ReimbursementController::class, 'rejected'])->name('reimbursement_rejected');
+        Route::post('/reimbursement/cancelled', [App\Http\Controllers\ReimbursementController::class, 'cancelled'])->name('reimbursement_cancelled');
+        Route::get('/reimbursement/downloadFile', [App\Http\Controllers\ReimbursementController::class, 'downloadFile'])->name('reimbursement_downloadFile');
 
         //PROFILE
         Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'index'])->name('profile_store');

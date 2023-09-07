@@ -61,6 +61,9 @@
                                     <label class="small mb-1" for="nama_pengajuan">Nama pengajuan </label>
                                     <input {{ $state == 'true' ? 'disabled' : '' }} class="form-control" id="nama_pengajuan" type="text"
                                         placeholder="Masukan Pengajuan" value="{{ $state == 'true' ? $reimbursement->name : '' }}" />
+
+                                        <input {{ $state == 'true' ? 'disabled' : '' }} class="form-control" id="id" type="hidden"
+                                         value="{{ $state == 'true' ? $reimbursement->id : '' }}" />
                                 </div>
                                 <!-- Form Group (last name)-->
                                 <div class="col-md-6">
@@ -77,13 +80,12 @@
                             </div>
                             <!-- Form Group (Group Selection Checkboxes)-->
                             <div class="mb-3">
-                                <label class="small mb-1">Unggah File gambar / pdf</label>
-                                <div class="col-6">
-                                    <input type="file" class="reimdrop" id="unggah" nama="unggah" />
-                                </div>
+                                <button onclick="unduh()" class="btn btn-sm btn-primary"><i class="fa-solid fa-download"></i>Unduh File </button>
+                                {{-- <label class="small mb-1">Unggah File gambar / pdf</label>
+                       --}}
 
                             </div>
-           
+
 
 
                         </form>
@@ -97,128 +99,63 @@
 @section('script')
 <script src="{{ URL::asset('js/filepond.js') }}"></script>
 <script type="text/javascript">
-    function submit() {
-            var nama_pengajuan = $("#nama_pengajuan").val();
+        function unduh() {
+var id = $("#id").val();
+var name = $("#nama_pengajuan").val();
 
-            var nominal = $("#nominal").val();
-            var desc = $("#desc").val();
+            var dataarray = new FormData();
+            var CSRF_TOKEN = "{{ csrf_token() }}";
+            dataarray.append('id', id);
+            dataarray.append('name', name);
+            dataarray.append('state', 'approval');
+            dataarray.append('_token', CSRF_TOKEN);
+            Swal.fire({
+                html: 'Batalkan pengajuan ' + name + ' ini ? ',
+                icon: 'question',
+                showDenyButton: true,
+                confirmButtonText: `Yes`,
+                denyButtonText: `No`,
+                customClass: {
+                    confirmButton: 'order-2',
+                    denyButton: 'order-3',
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "<?= url('reimbursement/downloadFile') ?>",
+                        method: "get",
+                        data: dataarray,
+                        dataType: 'json',
+                        contentType: false,
+                        cache: false,
+                        processData: false,
+                        type: 'post',
+                        success: function(data) {
 
-
-            var CSRF_TOKEN ="{{ csrf_token() }}";
-
-            var create = new FormData();
-            if ($('#unggah')[0].files.length != 0) {
-                var files1 = $('#unggah')[0].files;
-                create.append('unggah', files1[0]);
-
-                // console.log('unggah added');
-            }else{
-                create.append('unggah', null);
-            }
-
-            create.append('_token', CSRF_TOKEN);
-            create.append('nama_pengajuan', nama_pengajuan);
-            create.append('nominal', nominal);
-            create.append('desc', desc);
-
-
-            $.ajax({
-                    url: "<?= url('reimbursement/store') ?>",
-                    method: "POST",
-                    data: create,
-                    dataType: 'json',
-                    contentType: false,
-                    cache: false,
-                    processData: false,
-                    type: 'post',
-                    success: function(data) {
-                        console.log(data);
-
-                    if(data.isSuccess == 'yes'){
-                        Swal.fire({
-                            title: "data tersimpan",
-                            html: '<b>Halaman akan kembali ke menu utama</b>',
+                            if(data.isSuccess == 'yes'){
+                            Swal.fire({
+                            title: "Data berhasil didownload",
                             icon: 'success',
                             confirmButtonText: 'OK'
                             })
 
-                            window.location.replace( "<?= url('reimbursement') ?>");
-                    console.log('masuk')
-                    }else if(data.isSuccess == 'no'){
+                            }else {
+                                Swal.fire({
+                                    html: "<h4>Kesalahan</h4>",
+                                    icon: 'warning',
+                                    showCancelButton: false, // There won't be any cancel button
+                                    showConfirmButton: false // There won't be any confirm button
+                                });
+                                // setTimeout(location.reload.bind(location), 1500);
+                            }
 
-                        Swal.fire({
-                            title: "Error",
-                            html: '<b>'+data.msg+'</b>',
-                            icon: 'danger',
-                            confirmButtonText: 'OK'
-                            })
-                    }
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.log(textStatus, errorThrown);
+                        }
+                    });
+                } else if (result.isDenied) {
+                    return false;
                 }
             });
-
-
         }
-            var nama_pengajuan = $("#nama_pengajuan").val();
-
-            var nominal = $("#nominal").val();
-            var desc = $("#desc").val();
-
-
-            var CSRF_TOKEN ="{{ csrf_token() }}";
-
-            var create = new FormData();
-            if ($('#unggah')[0].files.length != 0) {
-                var files1 = $('#unggah')[0].files;
-                create.append('unggah', files1[0]);
-
-                // console.log('unggah added');
-            }else{
-                create.append('unggah', null);
-            }
-
-            create.append('_token', CSRF_TOKEN);
-            create.append('nama_pengajuan', nama_pengajuan);
-            create.append('nominal', nominal);
-            create.append('desc', desc);
-
-            loadingScreenOn();
-            $.ajax({
-                    url: "<?= url('artikel-konten/create/post') ?>",
-                    method: "POST",
-                    data: create,
-                    dataType: 'json',
-                    contentType: false,
-                    cache: false,
-                    processData: false,
-                    type: 'post',
-                    success: function(data) {
-                        // console.log(data);
-                        // loadingScreenOff();
-                    // You will get response from your PHP page (what you echo or print)
-
-                    if(data.isSuccess == 'yes'){
-                    window.location.reload();
-                    console.log('masuk')
-                    }else if(data.isSuccess == 'no'){
-                        Swal.fire({
-                            title: "Error",
-                            html: '<b>'+data.msg+'</b>',
-                            icon: 'danger',
-                            confirmButtonText: 'OK'
-                            })
-                    }
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.log(textStatus, errorThrown);
-                }
-            });
-
-
-        }
-
 
 </script>
 @endsection

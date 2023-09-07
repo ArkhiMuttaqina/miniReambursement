@@ -46,7 +46,7 @@
                     <div class="tab-content" id="cardPillContent">
                         <div class="tab-pane fade show active" id="semuaPill" role="tabpanel" aria-labelledby="semua-pill">
 
-                            <table id="datatablesSimpleALL" class="table compact table-responsive">
+                            <table id="datatablesSimpleALL" class="table compact table-responsive ">
                                 <thead>
                                     <tr>
                                         <th>No</th>
@@ -67,7 +67,7 @@
                         </div>
                     </div>
                     <div class="tab-pane fade" id="needActionPill" role="tabpanel" aria-labelledby="needAction-pill">
-                        <table id="datatablesSimpleUpdate" class="table compact table-responsive">
+                        <table id="datatablesSimpleUpdate" class="table compact">
                             <thead>
                                 <tr>
                                     <th>No</th>
@@ -89,8 +89,8 @@
                 </div>
             </div>
         </div>
-        </div>
-        </div>
+
+
     </main>
     <div class="modal fade" id="lihatPengajuan" role="dialog">
         <div class="modal-lg modal-dialog">
@@ -141,12 +141,10 @@
                     <div class="row m-3">
                         <div class="col">
 
-                            <button type="submit" id="btn_tambahanggota" name="btn_tambahanggota" onclick="Approved()"
+                            <button type="submit" id="btn_tambahanggota" name="btn_tambahanggota" onclick="approved()"
                                 class="btn btn-primary">Setujui Pengajuan</button>
-                            <button type="submit" id="btn_tambahanggota" name="btn_tambahanggota" onclick="Rejected()"
+                            <button type="submit" id="btn_tambahanggota" name="btn_tambahanggota" onclick="rejected()"
                                 class="btn btn-danger">Tolak Pengajuan</button>
-
-
                         </div>
                     </div>
                 </div>
@@ -268,7 +266,7 @@
         }
 
 
-        function approval() {
+        function approved() {
             var id = $("#ubah_id").val();
             var name = $("#nama_reimbursement").val();
             var dataarray = new FormData();
@@ -290,7 +288,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        url: "<?= url('reimbursement/approval') ?>",
+                        url: "<?= url('reimbursement/approved') ?>",
                         method: "POST",
                         data: dataarray,
                         dataType: 'json',
@@ -422,7 +420,7 @@
             fixedHeader: {
                 header: true
             },
-            processing: true,
+
             serverSide: true,
 
             ajax: '<?= url('/reimbursement/api/all?state=update') ?>',

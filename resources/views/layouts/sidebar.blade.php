@@ -31,7 +31,7 @@
                         Karyawan
                         {{-- <span class="badge bg-primary-soft text-primary ms-auto">Updated</span> --}}
                     </a>
-                    {{-- <a class="nav-link @yield('master-0-jabatan')" href="{{ route('role') }}">Jabatan</a> --}}
+   
                 </nav>
             </div>
             @endif

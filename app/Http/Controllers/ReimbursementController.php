@@ -14,21 +14,21 @@ use IntlDateFormatter;
 
 class ReimbursementController extends Controller
 {
-    // /**
-    //  * Create a new controller instance.
-    //  *
-    //  * @return void
-    //  */
-    // public function __construct()
-    // {
-    //     $this->middleware('auth');
-    // }
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
 
-    // /**
-    //  * Show the application dashboard.
-    //  *
-    //  * @return \Illuminate\Contracts\Support\Renderable
-    //  */
+    /**
+     * Show the application dashboard.
+     *
+     * @return \Illuminate\Contracts\Support\Renderable
+     */
 
     public function index()
     {
@@ -48,6 +48,36 @@ class ReimbursementController extends Controller
         return view('reimbursement.create');
     }
 
+    public function downloadFile(Request $req)
+    {
+        try {
+            $reimbursement = Reimbursement::find($req->id);
+
+            dd($reimbursement);
+            $filePath = public_path($reimbursement->files);
+
+            $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+
+            if (in_array($extension, ['pdf', 'jpg', 'jpeg', 'png', 'gif'])) {
+                $contentType = 'application/' . ($extension === 'pdf' ? 'pdf' : 'octet-stream');
+            } else {
+
+                $contentType = 'application/octet-stream';
+            }
+
+            $headers = [
+                'Content-Type' => $contentType,
+            ];
+
+            $newName = $reimbursement->files;
+
+            return response()->download($filePath, $newName, $headers);
+        } catch (\Exception $e) {
+            $msg = $e->getMessage();
+
+            dd($msg);
+        }
+    }
 
     public function post(Request $request)
     {
@@ -171,10 +201,11 @@ class ReimbursementController extends Controller
         }
         return response()->json($data);
     }
-
-    public function show($id,Reimbursement $reimbursement)
+    public function show($id)
     {
-        $reimbursement = Reimbursement::find($id)->first();
+
+
+        $reimbursement = Reimbursement::find($id);
         $state = 'true';
 
         return view('reimbursement.show', compact('reimbursement', 'state'));
@@ -182,16 +213,26 @@ class ReimbursementController extends Controller
 
     public function edit($id, Reimbursement $reimbursement)
     {
-        $reimbursement = Reimbursement::find($id)->first();
+
+
+        $reimbursement = Reimbursement::find($id);
         $state = 'true';
+
 
         return view('reimbursement.edit', compact('reimbursement', 'state'));
     }
 
     public function destroy($id, Reimbursement $reimbursement)
     {
+        $msg = '';
+
+        $reimbursement = Reimbursement::find($id);
+        if (file_exists(public_path($reimbursement->files))) {
+            unlink(public_path($reimbursement->files));
+        }
+
         try{
-        $reimbursement = Reimbursement::find($id)->first();
+        // $reimbursement = Reimbursement::find($id);
         $reimbursement->delete();    } catch (\Exception $e) {
             $msg = $e->getMessage();
             DB::rollback();
@@ -243,7 +284,7 @@ class ReimbursementController extends Controller
     public function approved(Request $req,  Reimbursement $reimbursement)
     {
         $now = new DateTime();
-
+        $msg = '';
 
         try {
             $reimbursement = Reimbursement::find($req->id);
@@ -275,6 +316,7 @@ class ReimbursementController extends Controller
     {
         $now = new DateTime();
 
+        $msg = '';
         try {
             $reimbursement = Reimbursement::find($req->id);
             $reimbursement->status = 'REJECTED';
@@ -301,7 +343,37 @@ class ReimbursementController extends Controller
         }
         return response()->json($data);
     }
+    public function cancelled(Request $req, Reimbursement $reimbursement)
+    {
+        $now = new DateTime();
 
+        $msg = '';
+        try {
+            $reimbursement = Reimbursement::find($req->id);
+            $reimbursement->status = 'CANCELED';
+            $reimbursement->approved_at =  $now->format('Y-m-d H:i:s');
+            $reimbursement->approver_id = auth()->user()->id;
+            $reimbursement->save();
+        } catch (\Exception $e) {
+            $msg = $e->getMessage();
+            DB::rollback();
+            // dd($e);
+        }
+
+
+        if ($msg == null) {
+            $data = [
+                'isSuccess' => 'yes',
+                'msg' => ''
+            ];
+        } else {
+            $data = [
+                'isSuccess' => 'no',
+                'msg' => $msg
+            ];
+        }
+        return response()->json($data);
+    }
     public function api(Request $request)
     {
         if ($request->id != null) {
@@ -385,7 +457,7 @@ class ReimbursementController extends Controller
                 $btn = '';
 
 
-                if($data->status == 'IN PROCESS' || $data->status == 'REJECTED'){
+                if($data->status == 'IN PROCESS' || $data->status == 'REJECTED'|| $data->status == 'CANCELED'){
                 $btn = $btn . '<a href="' . url('reimbursement/edit/' . $data->id) . '"  style="margin-left:3px;  margin-right:3px;"class="btn btn-sm btn-info">Edit</a>';
                 $btn = $btn . '<a href="javascript:void(0)" onclick="hapus(' . $data->id . ', `' . $data->name . '`);" style="margin-left:3px;  margin-right:3px;"class="btn btn-sm btn-danger">hapus</a>';
                     $btn = $btn . '<a href="javascript:void(0)" onclick="approval(' . $data->id . ', `' . $data->name . '`);" style="margin-left:3px;  margin-right:3px;"class="btn btn-sm btn-secondary">Ajukan</a>';
@@ -394,7 +466,7 @@ class ReimbursementController extends Controller
                  }else if($data->status == 'PENDING'){
                 $btn = $btn . '<a href="' . url('reimbursement/show/' . $data->id) . '"  style="margin-left:3px;  margin-right:3px;"class="btn btn-sm btn-info">Lihat</a>';
                 }else if ($data->status == 'IN APPROVAL') {
-                $btn = $btn . '<a href="javascript:void(0)" onclick="rejected(' . $data->id . ', `' . $data->name . '`);" style="margin-left:3px;  margin-right:3px;"class="btn btn-sm btn-danger">Batalkan</a>';
+                $btn = $btn . '<a href="javascript:void(0)" onclick="canceled(' . $data->id . ', `' . $data->name . '`);" style="margin-left:3px;  margin-right:3px;"class="btn btn-sm btn-danger">Batalkan</a>';
             }
 
                 return $btn;

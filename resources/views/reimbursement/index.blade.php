@@ -209,7 +209,7 @@
                 }
             });
         }
-         function rejected(id, name) {
+         function canceled(id, name) {
             var dataarray = new FormData();
             var CSRF_TOKEN = "{{ csrf_token() }}";
             dataarray.append('id', id);
@@ -229,7 +229,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        url: "<?= url('reimbursement/rejected') ?>",
+                        url: "<?= url('reimbursement/cancelled') ?>",
                         method: "POST",
                         data: dataarray,
                         dataType: 'json',
