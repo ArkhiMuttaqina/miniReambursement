@@ -8,6 +8,8 @@ use DB;
 use DataTables;
 use DateTime;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Validator;
 use IntlDateFormatter;
 
 class ReimbursementController extends Controller
@@ -49,23 +51,28 @@ class ReimbursementController extends Controller
 
     public function post(Request $request)
     {
-        $data = $request->validate([
-            'name' => 'required|string',
-            'nominal' => 'required',
-            'status' => 'nullable|string',
+
+
+        $validator = Validator::make($request->all(), [
+
+            'nama_pengajuan' => 'required|string',
+            'nominal' => 'nullable|string',
             'desc' => 'nullable|string',
-            'files' => 'required|mimes:jpeg'
+
         ]);
 
-        if ($request->fails()) {
+        if ($validator->fails()) {
             $data = [
                 'isSuccess' => 'no',
-                'msg' => $request->errors()
+                'msg' => 'periksa kembali isian kamu, Ada yang kurang sepertinya'
             ];
+
             return response()->json($data);
         }
+
           $msg = '';
         try {
+            DB::beginTransaction();
             $store = new Reimbursement;
             $store->name = $request->nama_pengajuan;
             $store->creator_id = auth()->user()->id;
@@ -83,7 +90,9 @@ class ReimbursementController extends Controller
                 $store->files = '';
             }
             $store->desc = $request->desc;
+            $store->status = 'IN PROCESS';
             $store->save();
+            DB::commit();
         } catch (\Exception $e) {
             $msg = $e->getMessage();
             DB::rollback();
@@ -107,29 +116,29 @@ class ReimbursementController extends Controller
 
     public function update(Request $request)
     {
-        $data = $request->validate([
-            'name' => 'required|string',
-            'nominal' => 'required',
-            'status' => 'nullable|string',
+        $validator = Validator::make($request->all(), [
+
+            'nama_pengajuan' => 'required|string',
+            'nominal' => 'nullable|string',
             'desc' => 'nullable|string',
-            'files' => 'required|mimes:jpeg'
+
         ]);
 
-        if ($request->fails()) {
+        if ($validator->fails()) {
             $data = [
                 'isSuccess' => 'no',
-                'msg' => $request->errors()
+                'msg' => 'periksa kembali isian kamu, Ada yang kurang sepertinya'
             ];
+
             return response()->json($data);
         }
         $msg = '';
         try {
             $store = Reimbursement::find($request->id);
             $store->name = $request->nama_pengajuan;
-            $store->creator_id = auth()->user()->id;
-            $store->approver_id = null;
+
             $store->nominal = $request->nominal;
-            $store->approved_at = null;
+
             if ($request->file('unggah') != null) {
                 $originName1 = $request->file('unggah')->getClientOriginalName();
                 $fileName1 = pathinfo($originName1, PATHINFO_FILENAME);
@@ -163,44 +172,156 @@ class ReimbursementController extends Controller
         return response()->json($data);
     }
 
-    public function show(Reimbursement $reimbursement)
+    public function show($id,Reimbursement $reimbursement)
     {
+        $reimbursement = Reimbursement::find($id)->first();
         $state = 'true';
+
+        return view('reimbursement.show', compact('reimbursement', 'state'));
+    }
+
+    public function edit($id, Reimbursement $reimbursement)
+    {
+        $reimbursement = Reimbursement::find($id)->first();
+        $state = 'true';
+
         return view('reimbursement.edit', compact('reimbursement', 'state'));
     }
 
-    public function edit(Reimbursement $reimbursement)
+    public function destroy($id, Reimbursement $reimbursement)
     {
-        return view('reimbursement.edit', compact('reimbursement'));
+        try{
+        $reimbursement = Reimbursement::find($id)->first();
+        $reimbursement->delete();    } catch (\Exception $e) {
+            $msg = $e->getMessage();
+            DB::rollback();
+            // dd($e);
+        }
+
+
+        if ($msg == null) {
+            $data = [
+                'isSuccess' => 'yes',
+                'msg' => ''
+            ];
+        } else {
+            $data = [
+                'isSuccess' => 'no',
+                'msg' => $msg
+            ];
+        }
+        return response()->json($data);
+    }
+    public function approval(Request $req, Reimbursement $reimbursement)
+    {
+        $msg = '';
+        try{
+            $reimbursement = Reimbursement::find($req->id);
+            $reimbursement->status = 'IN APPROVAL';
+            $reimbursement->save();
+        } catch (\Exception $e) {
+            $msg = $e->getMessage();
+            DB::rollback();
+            // dd($e);
+        }
+
+
+        if ($msg == null) {
+            $data = [
+                'isSuccess' => 'yes',
+                'msg' => ''
+            ];
+        } else {
+            $data = [
+                'isSuccess' => 'no',
+                'msg' => $msg
+            ];
+        }
+        return response()->json($data);
     }
 
-    public function destroy(Reimbursement $reimbursement)
+    public function approved(Request $req,  Reimbursement $reimbursement)
     {
-        $reimbursement->delete();
+        $now = new DateTime();
 
-        return redirect()->route('reimbursement.index')->with('success', 'Reimbursement telah berhasil dihapus.');
+
+        try {
+            $reimbursement = Reimbursement::find($req->id);
+            $reimbursement->status = 'APPROVED';
+            $reimbursement->approved_at =  $now->format('Y-m-d H:i:s');
+            $reimbursement->approver_id = auth()->user()->id;
+            $reimbursement->save();
+        } catch (\Exception $e) {
+            $msg = $e->getMessage();
+            DB::rollback();
+            // dd($e);
+        }
+
+
+        if ($msg == null) {
+            $data = [
+                'isSuccess' => 'yes',
+                'msg' => ''
+            ];
+        } else {
+            $data = [
+                'isSuccess' => 'no',
+                'msg' => $msg
+            ];
+        }
+        return response()->json($data);
+    }
+    public function rejected(Request $req, Reimbursement $reimbursement)
+    {
+        $now = new DateTime();
+
+        try {
+            $reimbursement = Reimbursement::find($req->id);
+            $reimbursement->status = 'REJECTED';
+            $reimbursement->approved_at =  $now->format('Y-m-d H:i:s');
+            $reimbursement->approver_id = auth()->user()->id;
+            $reimbursement->save();
+        } catch (\Exception $e) {
+            $msg = $e->getMessage();
+            DB::rollback();
+            // dd($e);
+        }
+
+
+        if ($msg == null) {
+            $data = [
+                'isSuccess' => 'yes',
+                'msg' => ''
+            ];
+        } else {
+            $data = [
+                'isSuccess' => 'no',
+                'msg' => $msg
+            ];
+        }
+        return response()->json($data);
     }
 
     public function api(Request $request)
     {
-        // if ($request->id != null) {
-        //     $users = DB::table('reimbursement')->select(
-        //         'reimbursement.*',
-        //         'users.name as creator',
-        //         'users.name as approver'
-        //     )
-        //     ->leftjoin('users as users_creator', 'users_creator.id', '=', 'reimbursement.creator_id')
-        //     ->leftjoin('users as users_approver', 'users_approver.id', '=', 'reimbursement.approver_id')
-        //     ->where('users.id', '=', $request->id)->first();
-        //     return Response::json($users);
-        // }
+        if ($request->id != null) {
+            $users = DB::table('reimbursement')->select(
+                'reimbursement.*',
+                'users_creator.name as creator',
+                'users_approver.name as approver'
+            )
+            ->leftjoin('users as users_creator', 'users_creator.id', '=', 'reimbursement.creator_id')
+            ->leftjoin('users as users_approver', 'users_approver.id', '=', 'reimbursement.approver_id')
+            ->where('reimbursement.id', '=', $request->id)->first();
+            return Response::json($users);
+        }
         $data = DB::table('reimbursement')->select(
             'reimbursement.*',
             'users_creator.name as creator',
             'users_approver.name as approver'
         )
             ->leftjoin('users as users_creator', 'users_creator.id', '=', 'reimbursement.creator_id')
-            ->leftjoin('users as users_approver', 'users_approver.id', '=', 'reimbursement.approver_id')->where('reimbursement.creator_id', '=' ,auth()->user()->role_id)->get();
+            ->leftjoin('users as users_approver', 'users_approver.id', '=', 'reimbursement.approver_id')->where('reimbursement.creator_id', '=' ,auth()->user()->id)->get();
 
         return Datatables::of($data)
             ->addIndexColumn()
@@ -262,8 +383,20 @@ class ReimbursementController extends Controller
             })
             ->editColumn('action', function ($data) {
                 $btn = '';
-                $btn = $btn . '<a href="'.url('reimbursement/edit/' . $data->id).'"  style="margin-left:3px; margin-right:3px;"class="btn btn-sm btn-info">Edit</a>';
-                $btn = $btn . '<a href="javascript:void(0)" onclick="hapus('.$data->id.');" style="margin-left:3px; margin-right:3px;"class="btn btn-sm btn-danger">hapus</a>';
+
+
+                if($data->status == 'IN PROCESS' || $data->status == 'REJECTED'){
+                $btn = $btn . '<a href="' . url('reimbursement/edit/' . $data->id) . '"  style="margin-left:3px;  margin-right:3px;"class="btn btn-sm btn-info">Edit</a>';
+                $btn = $btn . '<a href="javascript:void(0)" onclick="hapus(' . $data->id . ', `' . $data->name . '`);" style="margin-left:3px;  margin-right:3px;"class="btn btn-sm btn-danger">hapus</a>';
+                    $btn = $btn . '<a href="javascript:void(0)" onclick="approval(' . $data->id . ', `' . $data->name . '`);" style="margin-left:3px;  margin-right:3px;"class="btn btn-sm btn-secondary">Ajukan</a>';
+                }else if($data->status == 'APPROVED'){
+                $btn = $btn . '<a href="' . url('reimbursement/show/' . $data->id) . '"  style="margin-left:3px;  margin-right:3px;"class="btn btn-sm btn-info">Lihat</a>';
+                 }else if($data->status == 'PENDING'){
+                $btn = $btn . '<a href="' . url('reimbursement/show/' . $data->id) . '"  style="margin-left:3px;  margin-right:3px;"class="btn btn-sm btn-info">Lihat</a>';
+                }else if ($data->status == 'IN APPROVAL') {
+                $btn = $btn . '<a href="javascript:void(0)" onclick="rejected(' . $data->id . ', `' . $data->name . '`);" style="margin-left:3px;  margin-right:3px;"class="btn btn-sm btn-danger">Batalkan</a>';
+            }
+
                 return $btn;
             })
 
@@ -292,10 +425,10 @@ class ReimbursementController extends Controller
         ->leftjoin('users as users_creator', 'users_creator.id', '=', 'reimbursement.creator_id')
         ->leftjoin('users as users_approver', 'users_approver.id', '=', 'reimbursement.approver_id');
         if ($request->state == 'update') {
-            $data->where('reimbursement.status', '=', 'update')->get();
+            $data->where('reimbursement.status', '=', 'IN APPROVAL')->get();
 
         }else{
-            $data->where('reimbursement.status', '!=', 'update')->get();
+            $data->where('reimbursement.status', '=', 'APPROVED')->get();
         }
 
         return Datatables::of($data)
@@ -359,10 +492,22 @@ class ReimbursementController extends Controller
                 return '<div style="float: right; display: block">' . $result . '</div>';
             })
             ->editColumn('action', function ($data) {
-                $btn = '';
-                $btn = $btn . '<a href="' . url('reimbursement/edit/' . $data->id) . '"  style="margin-left:3px; margin-right:3px;"class="btn btn-sm btn-info">Edit</a>';
-                $btn = $btn . '<a href="javascript:void(0)" onclick="hapus(' . $data->id . ');" style="margin-left:3px; margin-right:3px;"class="btn btn-sm btn-danger">hapus</a>';
-                return $btn;
+            $btn = '';
+
+
+            if ($data->status == 'IN PROCESS') {
+
+                $btn = $btn . '<a href="javascript:void(0)" onclick="hapus(' . $data->id . ', `' . $data->name . '`);" style="margin-left:3px;  margin-right:3px;"class="btn btn-sm btn-danger">hapus</a>';
+                $btn = $btn . '<a href="javascript:void(0)" onclick="approval(' . $data->id . ', `' . $data->name . '`);" style="margin-left:3px;  margin-right:3px;"class="btn btn-sm btn-secondary">Ajukan</a>';
+            } else if ($data->status == 'APPROVED') {
+                $btn = $btn . '<a href="' . url('reimbursement/show/' . $data->id) . '"  style="margin-left:3px;  margin-right:3px;"class="btn btn-sm btn-info">Lihat</a>';
+            } else if ($data->status == 'PENDING') {
+                $btn = $btn . '<a href="' . url('reimbursement/show/' . $data->id) . '"  style="margin-left:3px;  margin-right:3px;"class="btn btn-sm btn-info">Lihat</a>';
+            }else if ($data->status == 'IN APPROVAL') {
+                $btn = $btn . '<a href="javascript:void(0)" onclick="showDetail(' . $data->id . ', `' . $data->name . '`);" style="margin-left:3px;  margin-right:3px;"class="btn btn-sm btn-secondary">Setujui</a>';
+            }
+
+            return $btn;
             })
 
             ->rawColumns(['status', 'creator', 'approver', 'nominal', 'created_at', 'action'])

@@ -46,24 +46,21 @@ Auth::routes();
         Route::post('/role/update', [App\Http\Controllers\RoleController::class, 'update'])->name('role_update');
         Route::post('/role/delete', [App\Http\Controllers\RoleController::class, 'delete'])->name('role_delete');
 
-        // FINANCE
-        Route::get('/finance', [App\Http\Controllers\FinanceController::class, 'index'])->name('finance');
-        Route::get('/finance/api', [App\Http\Controllers\FinanceController::class, 'api'])->name('finance_api');
-        Route::post('/finance/store', [App\Http\Controllers\FinanceController::class, 'index'])->name('finance_store');
-        Route::post('/finance/update', [App\Http\Controllers\FinanceController::class, 'index'])->name('finance_update');
-        Route::post('/finance/delete', [App\Http\Controllers\FinanceController::class, 'index'])->name('finance_delete');
 
         // REIMBURSMENT
         Route::get('/reimbursement', [App\Http\Controllers\ReimbursementController::class, 'index'])->name('reimbursement');
         Route::get('/reimbursement/all', [App\Http\Controllers\ReimbursementController::class, 'indexAll'])->name('reimbursement_all');
         Route::get('/reimbursement/create', [App\Http\Controllers\ReimbursementController::class, 'create'])->name('reimbursement_create');
-        Route::get('/reimbursement/show', [App\Http\Controllers\ReimbursementController::class, 'show'])->name('reimbursement_show');
+        Route::get('/reimbursement/show/{id}', [App\Http\Controllers\ReimbursementController::class, 'show'])->name('reimbursement_show');
         Route::get('/reimbursement/edit/{id}', [App\Http\Controllers\ReimbursementController::class, 'edit'])->name('reimbursement_edit');
         Route::get('/reimbursement/api', [App\Http\Controllers\ReimbursementController::class, 'api'])->name('reimbursement_api');
         Route::get('/reimbursement/api/all', [App\Http\Controllers\ReimbursementController::class, 'apiAllReimbursement'])->name('reimbursementAll_api');
-        Route::post('/reimbursement/store', [App\Http\Controllers\ReimbursementController::class, 'index'])->name('reimbursement_store');
-        Route::post('/reimbursement/update', [App\Http\Controllers\ReimbursementController::class, 'index'])->name('reimbursement_update');
-        Route::post('/reimbursement/delete', [App\Http\Controllers\ReimbursementController::class, 'index'])->name('reimbursement_delete');
+        Route::post('/reimbursement/store', [App\Http\Controllers\ReimbursementController::class, 'post'])->name('reimbursement_store');
+        Route::post('/reimbursement/update', [App\Http\Controllers\ReimbursementController::class, 'update'])->name('reimbursement_update');
+        Route::post('/reimbursement/delete/{$id}', [App\Http\Controllers\ReimbursementController::class, 'destroy'])->name('reimbursement_delete');
+        Route::post('/reimbursement/approval', [App\Http\Controllers\ReimbursementController::class, 'approval'])->name('reimbursement_approval');
+        Route::post('/reimbursement/approved', [App\Http\Controllers\ReimbursementController::class, 'approved'])->name('reimbursement_approved');
+        Route::post('/reimbursement/rejected', [App\Http\Controllers\ReimbursementController::class, 'rejected'])->name('reimbursement_rejected');
 
         //PROFILE
         Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'index'])->name('profile_store');

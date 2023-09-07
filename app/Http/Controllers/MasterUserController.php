@@ -20,12 +20,6 @@ class MasterUserController extends Controller
         // $users = User::all();
         return view('employee.index', compact('hakakses'));
     }
-
-    public function create()
-    {
-        return view('users.create');
-    }
-
     public function store(Request $request)
     {
         $validatedData = $request->validate([
@@ -117,12 +111,12 @@ class MasterUserController extends Controller
             })
             ->editColumn('action', function ($data) {
                 $btn = '';
-            $btn = $btn . '<button type="button" data-bs-toggle="tooltip" data-bs-placement="left" title="ubah data karyawan" onclick="ubah(' . $data->id . ');" style="margin-left:3px; margin-right:3px;"class="btn btn-sm btn-info"><i class="fa-solid fa-pencil"></i></button>';
-            $btn = $btn . '<button type="button" data-bs-toggle="tooltip" data-bs-placement="left" title="Hapus Pengguna" onclick="hapus(' . $data->id . ');" style="margin-left:3px; margin-right:3px;"class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></button>';
+            $btn = $btn . '<button type="button" data-bs-toggle="tooltip" data-bs-placement="left" title="ubah data karyawan" onclick="change(' . $data->id . ');" style="margin-left:3px; margin-right:3px;"class="btn btn-sm btn-info"><i class="fa-solid fa-pencil"></i></button>';
+            $btn = $btn . '<button type="button" data-bs-toggle="tooltip" data-bs-placement="left" title="Hapus Pengguna" onclick="hapus(' . $data->id . ', "'.$data->name.'");" style="margin-left:3px; margin-right:3px;"class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></button>';
             if($data->status == 'ACTIVE'){
-                $btn = $btn . '<button type="button" data-bs-toggle="tooltip" data-bs-placement="left" title="Matikan akses Karyawan" onclick="deactivated(' . $data->id . ');" style="margin-left:3px; margin-right:3px;"class="btn btn-sm btn-warning"><i class="fa-solid fa-toggle-off"></i></button>';
+                $btn = $btn . '<button type="button" data-bs-toggle="tooltip" data-bs-placement="left" title="Matikan akses Karyawan" onclick="changeStatus(' . $data->id . ', `' . $data->name . '`)" style="margin-left:3px; margin-right:3px;"class="btn btn-sm btn-warning"><i class="fa-solid fa-toggle-off"></i></button>';
             }else{
-                $btn = $btn . '<button type="button" data-bs-toggle="tooltip" data-bs-placement="left" title="Actifkan akses Karyawan" onclick="activated(' . $data->id . ');" style="margin-left:3px; margin-right:3px;"class="btn btn-sm btn-success"><i class="fa-solid fa-toggle-on"></i></button>';
+                $btn = $btn . '<button type="button" data-bs-toggle="tooltip" data-bs-placement="left" title="Actifkan akses Karyawan" onclick="changeStatus(' . $data->id . ', `' . $data->name . '`)"  style="margin-left:3px; margin-right:3px;"class="btn btn-sm btn-success"><i class="fa-solid fa-toggle-on"></i></button>';
             }
                 return $btn;
             })
