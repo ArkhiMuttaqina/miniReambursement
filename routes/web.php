@@ -50,7 +50,7 @@ Auth::routes();
         Route::get('/reimbursement/api/all', [App\Http\Controllers\ReimbursementController::class, 'apiAllReimbursement'])->name('reimbursementAll_api');
         Route::post('/reimbursement/store', [App\Http\Controllers\ReimbursementController::class, 'post'])->name('reimbursement_store');
         Route::post('/reimbursement/update', [App\Http\Controllers\ReimbursementController::class, 'update'])->name('reimbursement_update');
-        Route::post('/reimbursement/delete/{$id}', [App\Http\Controllers\ReimbursementController::class, 'destroy'])->name('reimbursement_delete');
+        Route::post('/reimbursement/delete', [App\Http\Controllers\ReimbursementController::class, 'destroy'])->name('reimbursement_delete');
         Route::post('/reimbursement/approval', [App\Http\Controllers\ReimbursementController::class, 'approval'])->name('reimbursement_approval');
         Route::post('/reimbursement/approved', [App\Http\Controllers\ReimbursementController::class, 'approved'])->name('reimbursement_approved');
         Route::post('/reimbursement/rejected', [App\Http\Controllers\ReimbursementController::class, 'rejected'])->name('reimbursement_rejected');
