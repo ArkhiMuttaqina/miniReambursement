@@ -53,8 +53,7 @@
                 <div class="card mb-4">
                     <div class="card-header">Detail pengajuan</div>
                     <div class="card-body">
-                        <form>
-                            <!-- Form Row-->
+
                             <div class="row gx-3 mb-3">
                                 <!-- Form Group (first name)-->
                                 <div class="col-md-6">
@@ -85,10 +84,6 @@
                        --}}
 
                             </div>
-
-
-
-                        </form>
                     </div>
                 </div>
             </div>
@@ -110,7 +105,7 @@ var name = $("#nama_pengajuan").val();
             dataarray.append('state', 'approval');
             dataarray.append('_token', CSRF_TOKEN);
             Swal.fire({
-                html: 'Batalkan pengajuan ' + name + ' ini ? ',
+                html: 'Unduh File ini ? ',
                 icon: 'question',
                 showDenyButton: true,
                 confirmButtonText: `Yes`,
@@ -123,7 +118,7 @@ var name = $("#nama_pengajuan").val();
                 if (result.isConfirmed) {
                     $.ajax({
                         url: "<?= url('reimbursement/downloadFile') ?>",
-                        method: "get",
+                        method: "post",
                         data: dataarray,
                         dataType: 'json',
                         contentType: false,
@@ -132,22 +127,10 @@ var name = $("#nama_pengajuan").val();
                         type: 'post',
                         success: function(data) {
 
-                            if(data.isSuccess == 'yes'){
-                            Swal.fire({
-                            title: "Data berhasil didownload",
-                            icon: 'success',
-                            confirmButtonText: 'OK'
-                            })
+                          window.location = data;
 
-                            }else {
-                                Swal.fire({
-                                    html: "<h4>Kesalahan</h4>",
-                                    icon: 'warning',
-                                    showCancelButton: false, // There won't be any cancel button
-                                    showConfirmButton: false // There won't be any confirm button
-                                });
-                                // setTimeout(location.reload.bind(location), 1500);
-                            }
+                          console.log(data)
+                        
 
                         }
                     });

@@ -138,6 +138,13 @@
                         </div>
 
                     </div>
+                    <div class="mb-3">
+                        <button onclick="unduh()" class="btn btn-sm btn-primary"><i class="fa-solid fa-download"></i>Unduh
+                            File </button>
+                        {{-- <label class="small mb-1">Unggah File gambar / pdf</label>
+                                                    --}}
+
+                    </div>
                     <div class="row m-3">
                         <div class="col">
 
@@ -206,7 +213,7 @@
         }
 
         function rejected() {
-            var id = $("#ubah_id").val();
+            var id = $("#UID").val();
             var name = $("#nama_reimbursement").val();
             var dataarray = new FormData();
             var CSRF_TOKEN = "{{ csrf_token() }}";
@@ -264,10 +271,55 @@
                 }
             });
         }
+                function unduh() {
+var id = $("#UID").val();
+var name = $("#nama_reimbursement").val();
+
+            var dataarray = new FormData();
+            var CSRF_TOKEN = "{{ csrf_token() }}";
+            dataarray.append('id', id);
+            dataarray.append('name', name);
+            dataarray.append('state', 'approval');
+            dataarray.append('_token', CSRF_TOKEN);
+            Swal.fire({
+                html: 'Unduh File ini ? ',
+                icon: 'question',
+                showDenyButton: true,
+                confirmButtonText: `Yes`,
+                denyButtonText: `No`,
+                customClass: {
+                    confirmButton: 'order-2',
+                    denyButton: 'order-3',
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "<?= url('reimbursement/downloadFile') ?>",
+                        method: "post",
+                        data: dataarray,
+                        dataType: 'json',
+                        contentType: false,
+                        cache: false,
+                        processData: false,
+                        type: 'post',
+                        success: function(data) {
+
+                          window.location = data;
+
+                          console.log(data)
+
+
+                        }
+                    });
+                } else if (result.isDenied) {
+                    return false;
+                }
+            });
+        }
 
 
         function approved() {
-            var id = $("#ubah_id").val();
+            var id = $("#UID").val();
             var name = $("#nama_reimbursement").val();
             var dataarray = new FormData();
             var CSRF_TOKEN = "{{ csrf_token() }}";
@@ -340,7 +392,7 @@
 
                     if (data != null) {
                         console.log(data);
-                        $("#ubah_id").val(data.id);
+                        $("#UID").val(data.id);
                         $("#nama_reimbursement").val(data.name);
                         $("#nominal_reimbursement").val(data.nominal).change();
                         $("#desc").val(data.desc).change();

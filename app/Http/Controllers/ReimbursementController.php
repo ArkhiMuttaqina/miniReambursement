@@ -9,6 +9,7 @@ use DataTables;
 use DateTime;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Validator;
 use IntlDateFormatter;
 
@@ -52,9 +53,10 @@ class ReimbursementController extends Controller
     {
         try {
             $reimbursement = Reimbursement::find($req->id);
+            $newName = $reimbursement->files;
 
-            dd($reimbursement);
-            $filePath = public_path($reimbursement->files);
+
+            $filePath = public_path('files_upload/') . $newName;
 
             $extension = pathinfo($filePath, PATHINFO_EXTENSION);
 
@@ -69,9 +71,10 @@ class ReimbursementController extends Controller
                 'Content-Type' => $contentType,
             ];
 
-            $newName = $reimbursement->files;
 
-            return response()->download($filePath, $newName, $headers);
+            // return response()->download($filePath, $newName, $headers);
+            return URL::to($filePath);
+
         } catch (\Exception $e) {
             $msg = $e->getMessage();
 

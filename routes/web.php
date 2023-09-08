@@ -57,7 +57,7 @@ Auth::routes();
         Route::post('/reimbursement/approved', [App\Http\Controllers\ReimbursementController::class, 'approved'])->name('reimbursement_approved');
         Route::post('/reimbursement/rejected', [App\Http\Controllers\ReimbursementController::class, 'rejected'])->name('reimbursement_rejected');
         Route::post('/reimbursement/cancelled', [App\Http\Controllers\ReimbursementController::class, 'cancelled'])->name('reimbursement_cancelled');
-        Route::get('/reimbursement/downloadFile', [App\Http\Controllers\ReimbursementController::class, 'downloadFile'])->name('reimbursement_downloadFile');
+        Route::post('/reimbursement/downloadFile', [App\Http\Controllers\ReimbursementController::class, 'downloadFile'])->name('reimbursement_downloadFile');
 
         //PROFILE
         Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'index'])->name('profile_store');
