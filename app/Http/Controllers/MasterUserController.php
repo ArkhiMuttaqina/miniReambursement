@@ -7,7 +7,9 @@ use Illuminate\Http\Request;
 use DB;
 use Auth;
 use DataTables;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Validator;
 
 class MasterUserController extends Controller
 {
@@ -22,52 +24,172 @@ class MasterUserController extends Controller
     }
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'name' => 'required',
-            'email' => 'required|unique:users',
-            'role_id' => 'required',
-            'status' => 'required',
-            'password' => 'required',
+
+        $validator = Validator::make($request->all(), [
+            'input_nama' => 'required',
+            'nip' => 'required',
+            'input_Email' => 'required',
+            'input_hak_akses' => 'required',
+            'ubah_status' => 'required',
+            'password_input' => 'required',
+
         ]);
 
-        User::create($validatedData);
+        if ($validator->fails()) {
+            $data = [
+                'isSuccess' => 'no',
+                'msg' => 'periksa kembali isian kamu, Ada yang kurang sepertinya'
+            ];
 
-        return redirect()->route('users.index')->with('success', 'User created successfully.');
+            return response()->json($data);
+        }
+
+        $msg = '';
+        try {
+
+            $store = new User();
+            $store->name = $request->input_nama;
+            $store->nip = $request->input_nama;
+            $store->email =  $request->input_Email;
+            $store->role_id =  $request->input_hak_akses;
+            $store->status =  $request->ubah_status;
+            $store->password =  Hash::make($request->password_input);
+            $store->save();
+        } catch (\Exception $e) {
+            $msg = $e->getMessage();
+            DB::rollback();
+            // dd($e);
+        }
+
+
+        if ($msg == null) {
+            $data = [
+                'isSuccess' => 'yes',
+                'msg' => ''
+            ];
+        } else {
+            $data = [
+                'isSuccess' => 'no',
+                'msg' => $msg
+            ];
+        }
+        return response()->json($data);
+    }
+    public function destroy(Request $req, Reimbursement $reimbursement)
+    {
+        $msg = '';
+
+        $reimbursement = Reimbursement::find($req->id);
+        if (file_exists(public_path($reimbursement->files))) {
+            unlink(public_path($reimbursement->files));
+        }
+
+        try {
+            // $reimbursement = Reimbursement::find($id);
+            $reimbursement->delete();
+        } catch (\Exception $e) {
+            $msg = $e->getMessage();
+            DB::rollback();
+            // dd($e);
+        }
+
+
+        if ($msg == null) {
+            $data = [
+                'isSuccess' => 'yes',
+                'msg' => ''
+            ];
+        } else {
+            $data = [
+                'isSuccess' => 'no',
+                'msg' => $msg
+            ];
+        }
+        return response()->json($data);
+    }
+    public function approval(Request $req, Reimbursement $reimbursement)
+    {
+        $msg = '';
+        try {
+            $reimbursement = Reimbursement::find($req->id);
+            $reimbursement->status = 'IN APPROVAL';
+            $reimbursement->save();
+        } catch (\Exception $e) {
+            $msg = $e->getMessage();
+            DB::rollback();
+            // dd($e);
+        }
+
+
+        if ($msg == null) {
+            $data = [
+                'isSuccess' => 'yes',
+                'msg' => ''
+            ];
+        } else {
+            $data = [
+                'isSuccess' => 'no',
+                'msg' => $msg
+            ];
+        }
+        return response()->json($data);
     }
 
-    public function show(User $user)
+    public function Update(Request $request)
     {
-        return view('users.show', compact('user'));
-    }
 
-    public function edit(User $user)
-    {
-        return view('users.edit', compact('user'));
-    }
+        $validator = Validator::make($request->all(), [
+            'ubah_id' => 'required',
+            'ubah_email' => 'required',
+            'ubah_nip' => 'required',
+            'ubah_nama' => 'required',
+            'ubah_hak_akses' => 'required',
+            'ubah_status' => 'required',
+            'ubah_password' => 'required',
+            'ubah_confirm_password' => 'required',
 
-    public function update(Request $request, User $user)
-    {
-        $validatedData = $request->validate([
-            'name' => 'required',
-            'email' => 'required|unique:users,email,' . $user->id,
-            'role_id' => 'required',
-            'status' => 'required',
-            'password' => 'required',
         ]);
 
-        $user->update($validatedData);
+        if ($validator->fails()) {
+            $data = [
+                'isSuccess' => 'no',
+                'msg' => 'periksa kembali isian kamu, Ada yang kurang sepertinya'
+            ];
 
-        return redirect()->route('users.index')->with('success', 'User updated successfully.');
+            return response()->json($data);
+        }
+
+        $msg = '';
+        try {
+
+            $store = user::find($request->ubah_id);
+            $store->name = $request->ubah_nama;
+            $store->nip = $request->ubah_nip;
+            $store->email =  $request->ubah_email;
+            $store->role_id =  $request->ubah_hak_akses;
+            $store->status =  $request->ubah_status;
+            $store->password =  Hash::make($request->password_input);
+            $store->save();
+        } catch (\Exception $e) {
+            $msg = $e->getMessage();
+            DB::rollback();
+            // dd($e);
+        }
+
+
+        if ($msg == null) {
+            $data = [
+                'isSuccess' => 'yes',
+                'msg' => ''
+            ];
+        } else {
+            $data = [
+                'isSuccess' => 'no',
+                'msg' => $msg
+            ];
+        }
+        return response()->json($data);
     }
-
-    public function destroy(User $user)
-    {
-        $user->delete();
-
-        return redirect()->route('users.index')->with('success', 'User deleted successfully.');
-    }
-
-
     public function apiUsers(Request $request)
     {
         if($request->id != null){

@@ -222,11 +222,11 @@ class ReimbursementController extends Controller
         return view('reimbursement.edit', compact('reimbursement', 'state'));
     }
 
-    public function destroy($id, Reimbursement $reimbursement)
+    public function destroy(Request $req, Reimbursement $reimbursement)
     {
         $msg = '';
 
-        $reimbursement = Reimbursement::find($id);
+        $reimbursement = Reimbursement::find($req->id);
         if (file_exists(public_path($reimbursement->files))) {
             unlink(public_path($reimbursement->files));
         }
