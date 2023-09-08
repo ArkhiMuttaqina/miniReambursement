@@ -569,114 +569,179 @@
 
             }
 
-            function hapus(id, name) {
-                var dataarray = new FormData();
-                var CSRF_TOKEN = "{{ csrf_token() }}";
-                dataarray.append('id', id);
-                dataarray.append('name', name);
-                dataarray.append('state', 'delete');
-                dataarray.append('_token', CSRF_TOKEN);
-                Swal.fire({
-                    html: 'Hapus karyawan ? ' + name,
-                    icon: 'question',
-                    showDenyButton: true,
-                    confirmButtonText: `Yes`,
-                    denyButtonText: `No`,
-                    customClass: {
-                        confirmButton: 'order-2',
-                        denyButton: 'order-3',
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: "<?= url('employee/delete') ?>",
-                            method: "POST",
-                            data: dataarray,
-                            dataType: 'json',
-                            contentType: false,
-                            cache: false,
-                            processData: false,
-                            type: 'post',
-                            success: function(data) {
+                  function activate(id, name) {
+            var dataarray = new FormData();
+            var CSRF_TOKEN = "{{ csrf_token() }}";
+            dataarray.append('id', id);
+            dataarray.append('name', name);
+            dataarray.append('state', 'delete');
+            dataarray.append('_token', CSRF_TOKEN);
+            Swal.fire({
+                html: 'Aktifkan akses Karyawan ini ? ',
+                icon: 'question',
+                showDenyButton: true,
+                confirmButtonText: `Yes`,
+                denyButtonText: `No`,
+                customClass: {
+                    confirmButton: 'order-2',
+                    denyButton: 'order-3',
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "<?= url('employee/activate') ?>",
+                        method: "POST",
+                        data: dataarray,
+                        dataType: 'json',
+                        contentType: false,
+                        cache: false,
+                        processData: false,
+                        type: 'post',
+                        success: function(data) {
 
-                                if (data != null) {
+                           if(data.isSuccess == 'yes'){
+                        Swal.fire({
+                            title: "data terhapus",
+                            html: '<b>Halaman akan kembali ke menu utama</b>',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                            })
 
-                                } else {
-                                    Swal.fire({
-                                        html: "<h4>Kesalahan</h4>",
-                                        icon: 'warning',
-                                        showCancelButton: false, // There won't be any cancel button
-                                        showConfirmButton: false // There won't be any confirm button
-                                    });
-                                    // setTimeout(location.reload.bind(location), 1500);
-                                }
-
+                            window.location.replace( "<?= url('employee') ?>");
+                    console.log('masuk')
+                    }else {
+                                Swal.fire({
+                                    html: "<h4>Kesalahan</h4>",
+                                    icon: 'warning',
+                                    showCancelButton: false, // There won't be any cancel button
+                                    showConfirmButton: false // There won't be any confirm button
+                                });
+                                // setTimeout(location.reload.bind(location), 1500);
                             }
-                        });
-                    } else if (result.isDenied) {
-                        return false;
-                    }
-                });
-            }
 
-            function changeStatus(id, name) {
-                var dataarray = new FormData();
-                var CSRF_TOKEN = "{{ csrf_token() }}";
-                dataarray.append('id', id);
-                dataarray.append('name', name);
-                dataarray.append('state', 'changestatus');
-                dataarray.append('_token', CSRF_TOKEN);
-                Swal.fire({
-                    html: 'Ubah Status ' + name + ' ? ',
-                    icon: 'question',
-                    showDenyButton: true,
-                    confirmButtonText: `Yes`,
-                    denyButtonText: `No`,
-                    customClass: {
-                        confirmButton: 'order-2',
-                        denyButton: 'order-3',
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: "<?= url('employee/update') ?>",
-                            method: "POST",
-                            data: dataarray,
-                            dataType: 'json',
-                            contentType: false,
-                            cache: false,
-                            processData: false,
-                            type: 'post',
-                            success: function(data) {
+                        }
+                    });
+                } else if (result.isDenied) {
+                    return false;
+                }
+            });
+        }
 
-                                if (data.isSuccess == 'yes') {
-                                    Swal.fire({
-                                        title: "Berhasil",
-                                        html: '<b>Halaman akan kembali ke menu utama</b>',
-                                        icon: 'success',
-                                        confirmButtonText: 'OK'
-                                    })
+         function deactivate(id, name) {
+            var dataarray = new FormData();
+            var CSRF_TOKEN = "{{ csrf_token() }}";
+            dataarray.append('id', id);
+            dataarray.append('name', name);
+            dataarray.append('state', 'delete');
+            dataarray.append('_token', CSRF_TOKEN);
+            Swal.fire({
+                html: 'matikan akses Karyawan ini ? ',
+                icon: 'question',
+                showDenyButton: true,
+                confirmButtonText: `Yes`,
+                denyButtonText: `No`,
+                customClass: {
+                    confirmButton: 'order-2',
+                    denyButton: 'order-3',
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "<?= url('employee/deactivate') ?>",
+                        method: "POST",
+                        data: dataarray,
+                        dataType: 'json',
+                        contentType: false,
+                        cache: false,
+                        processData: false,
+                        type: 'post',
+                        success: function(data) {
 
-                                    window.location.replace("<?= url('employee') ?>");
-                                    console.log('masuk')
-                                } else {
-                                    Swal.fire({
-                                        html: "<h4>Kesalahan</h4>",
-                                        icon: 'warning',
-                                        showCancelButton: false, // There won't be any cancel button
-                                        showConfirmButton: false // There won't be any confirm button
-                                    });
-                                    // setTimeout(location.reload.bind(location), 1500);
-                                }
+                           if(data.isSuccess == 'yes'){
+                        Swal.fire({
+                            title: "data terhapus",
+                            html: '<b>Halaman akan kembali ke menu utama</b>',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                            })
 
+                            window.location.replace( "<?= url('employee') ?>");
+                    console.log('masuk')
+                    }else {
+                                Swal.fire({
+                                    html: "<h4>Kesalahan</h4>",
+                                    icon: 'warning',
+                                    showCancelButton: false, // There won't be any cancel button
+                                    showConfirmButton: false // There won't be any confirm button
+                                });
+                                // setTimeout(location.reload.bind(location), 1500);
                             }
-                        });
-                    } else if (result.isDenied) {
-                        return false;
-                    }
-                });
-            }
 
+                        }
+                    });
+                } else if (result.isDenied) {
+                    return false;
+                }
+            });
+        }
+
+      function hapus(id, name) {
+            var dataarray = new FormData();
+            var CSRF_TOKEN = "{{ csrf_token() }}";
+            dataarray.append('id', id);
+            dataarray.append('name', name);
+            dataarray.append('state', 'delete');
+            dataarray.append('_token', CSRF_TOKEN);
+            Swal.fire({
+                html: 'Hapus akses Karyawan ini ? ',
+                icon: 'question',
+                showDenyButton: true,
+                confirmButtonText: `Yes`,
+                denyButtonText: `No`,
+                customClass: {
+                    confirmButton: 'order-2',
+                    denyButton: 'order-3',
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "<?= url('employee/delete') ?>",
+                        method: "POST",
+                        data: dataarray,
+                        dataType: 'json',
+                        contentType: false,
+                        cache: false,
+                        processData: false,
+                        type: 'post',
+                        success: function(data) {
+
+                           if(data.isSuccess == 'yes'){
+                        Swal.fire({
+                            title: "data terhapus",
+                            html: '<b>Halaman akan kembali ke menu utama</b>',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                            })
+
+                            window.location.replace( "<?= url('employee') ?>");
+                    console.log('masuk')
+                    }else {
+                                Swal.fire({
+                                    html: "<h4>Kesalahan</h4>",
+                                    icon: 'warning',
+                                    showCancelButton: false, // There won't be any cancel button
+                                    showConfirmButton: false // There won't be any confirm button
+                                });
+                                // setTimeout(location.reload.bind(location), 1500);
+                            }
+
+                        }
+                    });
+                } else if (result.isDenied) {
+                    return false;
+                }
+            });
+        }
 
 
 

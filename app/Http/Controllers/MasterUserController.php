@@ -16,11 +16,19 @@ class MasterUserController extends Controller
     public function index()
     {
 
-        // $statusaja = DB::table('statusakun')->get();
-        $hakakses = DB::table('role_users')->get();
+        if(auth()->user()->role_id == 3){
 
-        // $users = User::all();
-        return view('employee.index', compact('hakakses'));
+            // $statusaja = DB::table('statusakun')->get();
+            $hakakses = DB::table('role_users')->get();
+
+            // $users = User::all();
+            return view('employee.index', compact('hakakses'));
+
+        }else{
+            return to_route('reimbursement');
+
+        }
+
     }
     public function store(Request $request)
     {
@@ -75,18 +83,16 @@ class MasterUserController extends Controller
         }
         return response()->json($data);
     }
-    public function destroy(Request $req, Reimbursement $reimbursement)
+    public function destroy(Request $req, User $User)
     {
         $msg = '';
 
-        $reimbursement = Reimbursement::find($req->id);
-        if (file_exists(public_path($reimbursement->files))) {
-            unlink(public_path($reimbursement->files));
-        }
+        $User = User::find($req->id);
+
 
         try {
             // $reimbursement = Reimbursement::find($id);
-            $reimbursement->delete();
+            $User->delete();
         } catch (\Exception $e) {
             $msg = $e->getMessage();
             DB::rollback();
@@ -107,13 +113,40 @@ class MasterUserController extends Controller
         }
         return response()->json($data);
     }
-    public function approval(Request $req, Reimbursement $reimbursement)
+    public function Activate(Request $req, User $User)
     {
         $msg = '';
         try {
-            $reimbursement = Reimbursement::find($req->id);
-            $reimbursement->status = 'IN APPROVAL';
-            $reimbursement->save();
+            $User = User::find($req->id);
+            $User->status = 'ACTIVE';
+            $User->save();
+        } catch (\Exception $e) {
+            $msg = $e->getMessage();
+            DB::rollback();
+            // dd($e);
+        }
+
+
+        if ($msg == null) {
+            $data = [
+                'isSuccess' => 'yes',
+                'msg' => ''
+            ];
+        } else {
+            $data = [
+                'isSuccess' => 'no',
+                'msg' => $msg
+            ];
+        }
+        return response()->json($data);
+    }
+    public function Deactivate(Request $req, User $User)
+    {
+        $msg = '';
+        try {
+            $User = User::find($req->id);
+            $User->status = 'DEACTIVATE';
+            $User->save();
         } catch (\Exception $e) {
             $msg = $e->getMessage();
             DB::rollback();
@@ -236,9 +269,9 @@ class MasterUserController extends Controller
             $btn = $btn . '<button type="button" data-bs-toggle="tooltip" data-bs-placement="left" title="ubah data karyawan" onclick="change(' . $data->id . ');" style="margin-left:3px; margin-right:3px;"class="btn btn-sm btn-info"><i class="fa-solid fa-pencil"></i></button>';
             $btn = $btn . '<button type="button" data-bs-toggle="tooltip" data-bs-placement="left" title="Hapus Pengguna" onclick="hapus(' . $data->id . ', "'.$data->name.'");" style="margin-left:3px; margin-right:3px;"class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></button>';
             if($data->status == 'ACTIVE'){
-                $btn = $btn . '<button type="button" data-bs-toggle="tooltip" data-bs-placement="left" title="Matikan akses Karyawan" onclick="changeStatus(' . $data->id . ', `' . $data->name . '`)" style="margin-left:3px; margin-right:3px;"class="btn btn-sm btn-warning"><i class="fa-solid fa-toggle-off"></i></button>';
+                $btn = $btn . '<button type="button" data-bs-toggle="tooltip" data-bs-placement="left" title="Matikan akses Karyawan" onclick="deactivate(' . $data->id . ', `' . $data->name . '`)" style="margin-left:3px; margin-right:3px;"class="btn btn-sm btn-warning"><i class="fa-solid fa-toggle-off"></i></button>';
             }else{
-                $btn = $btn . '<button type="button" data-bs-toggle="tooltip" data-bs-placement="left" title="Actifkan akses Karyawan" onclick="changeStatus(' . $data->id . ', `' . $data->name . '`)"  style="margin-left:3px; margin-right:3px;"class="btn btn-sm btn-success"><i class="fa-solid fa-toggle-on"></i></button>';
+                $btn = $btn . '<button type="button" data-bs-toggle="tooltip" data-bs-placement="left" title="Actifkan akses Karyawan" onclick="activate(' . $data->id . ', `' . $data->name . '`)"  style="margin-left:3px; margin-right:3px;"class="btn btn-sm btn-success"><i class="fa-solid fa-toggle-on"></i></button>';
             }
                 return $btn;
             })

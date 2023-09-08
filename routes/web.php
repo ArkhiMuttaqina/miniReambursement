@@ -37,7 +37,9 @@ Auth::routes();
         Route::get('/employee/api', [App\Http\Controllers\MasterUserController::class, 'apiUsers'])->name('employee_api');
         Route::post('/employee/store', [App\Http\Controllers\MasterUserController::class, 'store'])->name('employee_store');
         Route::post('/employee/update', [App\Http\Controllers\MasterUserController::class, 'update'])->name('employee_update');
-        Route::post('/employee/delete', [App\Http\Controllers\MasterUserController::class, 'delete'])->name('employee_delete');
+        Route::post('/employee/destroy', [App\Http\Controllers\MasterUserController::class, 'destroy'])->name('employee_destroy');
+        Route::post('/employee/Activate', [App\Http\Controllers\MasterUserController::class, 'Activate'])->name('employee_Activate');
+        Route::post('/employee/Deactivate', [App\Http\Controllers\MasterUserController::class, 'Deactivate'])->name('employee_Deactivate');
 
 
         // REIMBURSMENT
